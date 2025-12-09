@@ -1,12 +1,28 @@
-apiVersion: v1
-kind: Service
+apiVersion: argoproj.io/v1alpha1
+kind: Application
 metadata:
-  name: tetris-service
+  name: tetris-app
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
 spec:
-  selector:
-    app: tetris
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 80
-  type: LoadBalancer
+  project: default
+  source:
+    # 1. แก้ไข URL Repository ของคุณให้ถูกต้อง
+    repoURL: https://github.com/Puripan8900/tetris-game.git 
+    
+    # 2. แก้ไข Target Revision เป็น 'main' เพื่อแก้ปัญหา Branch
+    targetRevision: main  
+    
+    # 3. แก้ไข Path ให้ตรงกับโฟลเดอร์ที่เก็บ Manifests
+    path: manifests 
+    
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default 
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
