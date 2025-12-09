@@ -1,21 +1,28 @@
-# tetris-deployment.yaml
-
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: argoproj.io/v1alpha1
+kind: Application
 metadata:
-  name: tetris-deployment
+  name: tetris-app
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
 spec:
-  replicas: 2 # You can adjust the number of replicas as needed
-  selector:
-    matchLabels:
-      app: tetris
-  template:
-    metadata:
-      labels:
-        app: tetris
-    spec:
-      containers:
-        - name: tetris
-          image: puripan8900/tetris # Replace with the actual image tag
-          ports:
-            - containerPort: 80 # Replace with the port your Tetris game listens on
+  project: default
+  source:
+    # 1. แก้ไข URL Repository ของคุณให้ถูกต้อง
+    repoURL: https://github.com/Puripan8900/tetris-game.git 
+    
+    # 2. แก้ไข Target Revision เป็น 'main' เพื่อแก้ปัญหา 'unable to resolve default'
+    targetRevision: main  
+    
+    # 3. แก้ไข Path ให้ตรงกับโฟลเดอร์ที่เก็บ tetris-deployment.yaml 
+    path: manifests 
+    
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default # Deploy ลงใน Namespace 'default'
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
